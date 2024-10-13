@@ -11,6 +11,7 @@ import typing as tp
 import os
 from os import listdir
 from os.path import isfile, join
+import argparse
 
 
 SetLogLevel(-2)
@@ -187,13 +188,25 @@ class AudioInference:
         submission_df.to_json(submission_file_path, index=False, orient="records")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Audio Inference Script")
+    parser.add_argument("--model_path", type=str, required=True, help="Path to the Vosk model")
+    parser.add_argument("--data_path", type=str, required=True, help="Path to the data directory")
+    parser.add_argument("--audio_dir", type=str, required=True, help="Path to the audio directory")
+    parser.add_argument("--process_dir", type=str, required=True, help="Path to the processed audio directory")
+    parser.add_argument("--submission_file_path", type=str, required=True, help="Path to save the submission file")
+    return parser.parse_args()
 
-# Example usage:
-inference = AudioInference(
-    model_path="vosk-model-small-ru-0.22",
-    data_path="rzd/ESC_DATASET_v1.2/luga/02_11_2023",
-    audio_dir="rzd/ESC_DATASET_v1.2/luga/02_11_2023",
-    process_dir="denoise/luga/02_11_2023"
-)
-inference.preprocess_audio()
-inference.run_inference("submit.json")
+
+if __name__ == '__main__':
+
+    args = parse_args()
+    
+    inference = AudioInference(
+        model_path=args.model_path,
+        data_path=args.data_path,
+        audio_dir=args.audio_dir,
+        process_dir=args.process_dir
+    )
+    inference.preprocess_audio()
+    inference.run_inference(args.submission_file_path)
