@@ -22,7 +22,8 @@
 ## Установка
 1) Скачайте репозиторий с GitHub
 ```git clone https://github.com/fm-projects/railroad-command-recognition.git```
-2) Запустите скрипт `start.sh`, либо же `inference.py` с заранее установленными баблиотеками из `requirements.txt`
+2) Разархивировать `vosk-model-small-ru-0.22.zip` `unzip vosk-model-small-ru-0.22.zip`
+2) Запустите скрипт `get_submission.py` `python -m get_submission --src input_dir --dst output_dir`
 
 ## Структура проекта
 - `src` - папка с исходным кодом проекта
