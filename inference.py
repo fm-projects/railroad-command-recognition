@@ -9,10 +9,8 @@ from dicts_const import _label2id, numbers_dict, correct_id2label, _id2label, nu
 from nltk.stem.snowball import SnowballStemmer
 import typing as tp
 import os
-import resource
 from os import listdir
 from os.path import isfile, join
-
 
 
 SetLogLevel(-2)
@@ -139,11 +137,11 @@ def find_nearest_label(stemmer, sent: str, stemmed_labels: list[set[str]]) -> tp
     return max_common_id, correct_id2label[max_common_id]
 
 class AudioInference:
-    def __init__(self, model_path: str, data_path: str, audio_dir: str, denoise_dir: str):
+    def __init__(self, model_path: str, data_path: str, audio_dir: str, process_dir: str):
         self.model = Model(lang="ru-RU", model_path=model_path)
         self.audio_paths = [f for f in listdir(data_path) if isfile(join(data_path, f))]
         self.audio_dir = audio_dir
-        self.denoise_dir = denoise_dir
+        self.process_dir = process_dir
         self.classes = f'{list(_label2id.keys()) + list(numbers_dict.values()) + ["[unk]"]}'.replace("'", '"')
         self.number_list = list(number_dict.keys())
         self.vagon_dict = {i: get_vagon_form(i) for i in range(1, 101)}
@@ -151,11 +149,11 @@ class AudioInference:
         self.stemmer = SnowballStemmer("russian")
         self.filtered_labels = [list(filter(lambda x: x != "(количество)", self._id2label[i].split())) for i in range(23)]
         self.stemmed_labels = [{self.stemmer.stem(word) for word in label} for label in self.filtered_labels]
-
+    
     def preprocess_audio(self):
         for row in self.audio_paths:
             in_path = f"{self.audio_dir}/{row}"
-            out_path = f"{self.denoise_dir}/{row}"
+            out_path = f"{self.process_dir}/{row}"
             get_random_audio_and_remove_silence(in_path, out_path)
 
     def predict(self, audio_path: str) -> dict:
@@ -180,24 +178,22 @@ class AudioInference:
 
     def run_inference(self, submission_file_path: str):
         predictions = []
-        for row in self.audio_paths:
-            path = f"{self.audio_dir}/{row}"
+        for row in [f for f in listdir(self.process_dir) if isfile(join(self.process_dir, f))]:
+            path = f"{self.process_dir}/{row}"
             prediction = self.predict(path)
             predictions.append(prediction)
 
         submission_df = pd.DataFrame(predictions)
         submission_df.to_json(submission_file_path, index=False, orient="records")
 
-        peak_ram = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024 / 1024
-        print(f'Peak RAM usage: {peak_ram} MB')
 
 
 # Example usage:
 inference = AudioInference(
     model_path="vosk-model-small-ru-0.22",
-    data_path="rzd/ESC_DATASET_v1.2/luga/02_11_2023/",
-    audio_dir="rzd/ESC_DATASET_v1.2/luga/02_11_2023/",
-    denoise_dir="denoise/luga"
+    data_path="rzd/ESC_DATASET_v1.2/luga/02_11_2023",
+    audio_dir="rzd/ESC_DATASET_v1.2/luga/02_11_2023",
+    process_dir="denoise/luga/02_11_2023"
 )
 inference.preprocess_audio()
 inference.run_inference("submit.json")
