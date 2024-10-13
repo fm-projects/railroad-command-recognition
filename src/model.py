@@ -215,24 +215,3 @@ class Prediction:
     def get(self, type, default):
         if self.res_dict[type] == None: return default
         return self.res_dict[type]
-
-
-
-
-if __name__ == '__main__':
-    for i in ['02_11_2023', '03_07_2023', '11_10_2023', '15_11_2023', '21_11_2023']:
-        inference = YourModelClass()
-        results = []
-        for audio_path in os.listdir("../rzd/ESC_DATASET_v1.2/luga/" + i):
-            result = inference.predict(os.path.join("../rzd/ESC_DATASET_v1.2/luga/" + i, audio_path))
-            result = {
-                "audio": os.path.basename(audio_path),          # Audio file base name
-                "text": result.get("text", -1),             # Predicted text
-                "label": result.get("label", -1),           # Text class
-                "attribute": result.get("attribute", -1),   # Predicted attribute (if any, or -1)
-            }
-            results.append(result)
-        with open(
-            os.path.join("", "submission" + i + ".json"), "w", encoding="utf-8"
-        ) as outfile:
-            json.dump(results, outfile)
