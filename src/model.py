@@ -21,6 +21,15 @@ import wave
 import io
 
 def get_random_audio_and_remove_silence(file_path: str, top_db: int = 12, safe_zone: float = 0.25) -> wave:
+    """
+    Удаляет тишину из аудиофайла и возвращает обработанный аудио в формате WAV.
+    Параметры:
+    file_path (str): Путь к аудиофайлу.
+    top_db (int, по умолчанию 12): Пороговая величина в децибелах для определения тишины.
+    safe_zone (float, по умолчанию 0.25): Безопасная зона в секундах, добавляемая до и после неслышимых интервалов.
+    Возвращает:
+    wave: Объект wave, содержащий обработанные аудиоданные.
+    """
     audio_data, sr = librosa.load(file_path, sr=None)
     non_silent_intervals = librosa.effects.split(audio_data, top_db=top_db)
 
@@ -50,6 +59,16 @@ def get_random_audio_and_remove_silence(file_path: str, top_db: int = 12, safe_z
     return wave_obj
 
 def extract_number(number_list, label: list[str]) -> tp.Tuple[int, str]:
+    """
+    Извлекает число из списка строк и возвращает его числовое значение и строковое представление.
+
+    Аргументы:
+    number_list (list): Список строк, представляющих числа.
+    label (list[str]): Список строк, которые нужно искать в number_list.
+
+    Возвращает:
+    tuple: Кортеж, содержащий числовое значение (int) и строковое представление (str) найденных чисел.
+    """
     res_list = []
     res_num = 0
     for num_str in number_list[::-1]:
@@ -59,6 +78,15 @@ def extract_number(number_list, label: list[str]) -> tp.Tuple[int, str]:
     return res_num, ' '.join(res_list)
 
 def get_vagon_form(n: int) -> str:
+    """
+    Возвращает правильную форму слова "вагон" в зависимости от числа.
+
+    Аргументы:
+    n (int): Число вагонов.
+
+    Возвращает:
+    str: Правильная форма слова "вагон" ("вагон", "вагона" или "вагонов").
+    """
     if n % 10 == 1 and n % 100 != 11:
         return "вагон"
     elif 2 <= n % 10 <= 4 and not (12 <= n % 100 <= 14):
@@ -67,6 +95,20 @@ def get_vagon_form(n: int) -> str:
         return "вагонов"
 
 def postprocess_vagon(number_list, str_label: str) -> str:
+    """
+    Постобработка строки с номером вагона.
+
+    Функция принимает список чисел и строковую метку, разбивает метку на слова,
+    извлекает номер и строковое представление номера, определяет форму вагона
+    и формирует новую строку в зависимости от первого слова метки.
+
+    Args:
+        number_list (list): Список чисел для извлечения номера вагона.
+        str_label (str): Строковая метка, содержащая информацию о вагоне.
+
+    Returns:
+        str: Новая строка с номером вагона и его формой.
+    """
     label = str_label.split()
     voice_num, voice_str = extract_number(number_list, label)
     vagon_form = get_vagon_form(voice_num)
@@ -79,6 +121,20 @@ def postprocess_vagon(number_list, str_label: str) -> str:
     return ' '.join(label)
 
 def vosk_asr(model, wf: wave, classes: str) -> tp.Tuple[str, str, str]:
+    """
+    Распознавание речи с использованием модели Vosk.
+
+    Аргументы:
+    model -- модель Vosk для распознавания речи.
+    wf -- объект wave, представляющий аудиофайл.
+    classes -- строка, содержащая классы для распознавания.
+
+    Возвращает:
+    Кортеж из трех строк:
+        - res: итоговый результат распознавания.
+        - partial_res: частичные результаты распознавания.
+        - final_res: окончательный результат распознавания.
+    """
     # wf = wave.open(path, 'rb')
     rec = KaldiRecognizer(model, wf.getframerate(), classes)
     res = ""
@@ -98,12 +154,30 @@ def vosk_asr(model, wf: wave, classes: str) -> tp.Tuple[str, str, str]:
     return res, partial_res, final_res
 
 def find_nearest_label(stemmer, sent: str, stemmed_labels: list[set[str]]) -> tp.Tuple[int, str]:
+    """
+    Находит ближайшую метку для данного предложения.
+
+    Аргументы:
+    stemmer -- объект стеммера, используемый для обработки слов в предложении.
+    sent -- строка, представляющая предложение, для которого нужно найти ближайшую метку.
+    stemmed_labels -- список множеств строк, представляющих стеммированные метки.
+
+    Возвращает:
+    Кортеж, содержащий индекс ближайшей метки и саму метку.
+    """
     processed_sent = {stemmer.stem(word) for word in sent.split()}
     intersects = [len(processed_sent.intersection(label)) for label in stemmed_labels]
     max_common_id = np.argmax(intersects)
     return max_common_id, correct_id2label[max_common_id]
 
 class YourModelClass:
+    """
+    Класс YourModelClass
+    preprocess_many_audio():
+        Предобрабатывает множество аудиофайлов, удаляя тишину.
+    predict(audio_path: str, is_reduce=False) -> dict:
+        Предсказывает метку для данного аудиофайла.
+    """
     def __init__(self, model_path="vosk-model-small-ru-0.22"):
         self.model = Model(lang="ru-RU", model_path=model_path)
         # self.audio_paths = [f for f in listdir(data_path) if isfile(join(data_path, f))]
