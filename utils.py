@@ -86,3 +86,40 @@ def postprocess_vagon(str_label: str) -> str:
     label[-2] = voice_str
     label[-1] = vagon_form
     return ' '.join(label)
+
+
+def check_word_order(pred_text: str, label: str) -> bool:
+    """
+    Проверка на правильность порядка слов в предложении
+
+    Аргументы:
+    pred_text (str): предсказанный текст.
+    label (str): текст сопоставленной метки.
+
+    Возвращает:
+    bool: True, если порядок слов в предложении верный, иначе False.
+    """
+    label_words = label.split()
+    pred_text_words = pred_text.split()
+    ptr = 0
+    for i in range(len(label_words)):
+        if label_words[i] in pred_text_words:
+            if ptr > pred_text_words.index(label_words[i]):
+                return False
+            ptr = pred_text_words.index(label_words[i])
+    return True
+
+
+def filter_accidental_speech(sent: str) -> bool:
+    """
+    Функция для фильтрации случайной речи
+
+    Аргументы:
+    sent (str): распознанное предложение
+
+    Возвращает:
+    bool: True, если предложение является случайной речью, иначе False
+    """
+    if ('[unk]' in sent) or (sent.strip() == ''):
+        return True
+    return False
