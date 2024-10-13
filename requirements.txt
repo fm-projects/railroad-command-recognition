@@ -1,0 +1,7 @@
+vosk
+pandas
+numpy
+librosa
+soundfile
+nltk
+typing-extensions
