@@ -5,13 +5,13 @@ import pandas as pd
 import numpy as np
 import librosa
 import soundfile as sf
-from dicts_const import _label2id, numbers_dict, correct_id2label, _id2label, number_dict
+from src.dicts_const import _label2id, numbers_dict, correct_id2label, _id2label, number_dict
 from nltk.stem.snowball import SnowballStemmer
 import typing as tp
 import os
 from os import listdir
 from os.path import isfile, join
-import argparse
+# from utils import *
 
 
 SetLogLevel(-2)
@@ -104,7 +104,7 @@ def find_nearest_label(stemmer, sent: str, stemmed_labels: list[set[str]]) -> tp
     return max_common_id, correct_id2label[max_common_id]
 
 class YourModelClass:
-    def __init__(self, model_path="../vosk-model-small-ru-0.22"):
+    def __init__(self, model_path="vosk-model-small-ru-0.22"):
         self.model = Model(lang="ru-RU", model_path=model_path)
         # self.audio_paths = [f for f in listdir(data_path) if isfile(join(data_path, f))]
         # self.audio_dir = audio_dir
@@ -124,8 +124,11 @@ class YourModelClass:
             get_random_audio_and_remove_silence(in_path, out_path)
 
 
-    def predict(self, audio_path: str) -> dict:
-        audio = get_random_audio_and_remove_silence(audio_path)
+    def predict(self, audio_path: str, is_reduce=False) -> dict:
+        if is_reduce:
+            audio = get_random_audio_and_remove_silence(audio_path)
+        else:
+            audio = wave.open(audio_path, 'rb')
         res, partial_res, final_res = vosk_asr(self.model, audio, self.classes)
         if res == "":
             res = final_res
@@ -171,6 +174,8 @@ class Prediction:
 
 
 if __name__ == '__main__':
+    # import time
+    # start_time = time.time()
     for i in ['02_11_2023', '03_07_2023', '11_10_2023', '15_11_2023', '21_11_2023']:
         inference = YourModelClass()
         results = []
@@ -187,3 +192,11 @@ if __name__ == '__main__':
             os.path.join("", "submission" + i + ".json"), "w", encoding="utf-8"
         ) as outfile:
             json.dump(results, outfile)
+    # diff = time.time() - start_time
+    # print("time:", diff)
+    # print("one time:", diff / 610)
+
+    # import resource
+
+    # peak_ram = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024 / 1024
+    # print(f'Peak RAM usage: {peak_ram} MB')
