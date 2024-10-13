@@ -11,14 +11,8 @@ import typing as tp
 import os
 from os import listdir
 from os.path import isfile, join
-# from utils import *
-
-
-SetLogLevel(-2)
-import librosa
-import numpy as np
-import wave
 import io
+SetLogLevel(-2)
 
 def get_random_audio_and_remove_silence(file_path: str, top_db: int = 12, safe_zone: float = 0.25) -> wave:
     """
@@ -180,9 +174,6 @@ class YourModelClass:
     """
     def __init__(self, model_path="vosk-model-small-ru-0.22"):
         self.model = Model(lang="ru-RU", model_path=model_path)
-        # self.audio_paths = [f for f in listdir(data_path) if isfile(join(data_path, f))]
-        # self.audio_dir = audio_dir
-        # self.process_dir = process_dir
         self.classes = f'{list(_label2id.keys()) + list(numbers_dict.values()) + ["[unk]"]}'.replace("'", '"')
         self.number_list = list(number_dict.keys())
         self.vagon_dict = {i: get_vagon_form(i) for i in range(1, 101)}
@@ -217,17 +208,6 @@ class YourModelClass:
 
         return Prediction(prediction_text, int(nearest_label_id), int(extracted_number))
 
-    # def big_predict(self, submission_file_path: str):
-    #     predictions = []
-    #     for row in [f for f in listdir(self.process_dir) if isfile(join(self.process_dir, f))]:
-    #         path = f"{self.process_dir}/{row}"
-    #         prediction = self.predict(path)
-    #         predictions.append(prediction)
-
-    #     submission_df = pd.DataFrame(predictions)
-    #     submission_df.to_json(submission_file_path, index=False, orient="records")
-
-
 class Prediction:
     def __init__(self, text, label, attribute) -> None:
         self.res_dict = {'text': text, 'label': label, 'attribute': attribute}
@@ -237,19 +217,9 @@ class Prediction:
         return self.res_dict[type]
 
 
-# def parse_args():
-#     parser = argparse.ArgumentParser(description="Audio Inference Script")
-#     parser.add_argument("--model_path", type=str, required=True, help="Path to the Vosk model")
-#     parser.add_argument("--data_path", type=str, required=True, help="Path to the data directory")
-#     parser.add_argument("--audio_dir", type=str, required=True, help="Path to the audio directory")
-#     parser.add_argument("--process_dir", type=str, required=True, help="Path to the processed audio directory")
-#     parser.add_argument("--submission_file_path", type=str, required=True, help="Path to save the submission file")
-#     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    # import time
-    # start_time = time.time()
     for i in ['02_11_2023', '03_07_2023', '11_10_2023', '15_11_2023', '21_11_2023']:
         inference = YourModelClass()
         results = []
@@ -266,11 +236,3 @@ if __name__ == '__main__':
             os.path.join("", "submission" + i + ".json"), "w", encoding="utf-8"
         ) as outfile:
             json.dump(results, outfile)
-    # diff = time.time() - start_time
-    # print("time:", diff)
-    # print("one time:", diff / 610)
-
-    # import resource
-
-    # peak_ram = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024 / 1024
-    # print(f'Peak RAM usage: {peak_ram} MB')
