@@ -3,6 +3,7 @@ import typing as tp
 import librosa
 import os
 from nltk.stem.snowball import SnowballStemmer
+from dicts_const import _id2label
 
 
 _id2label = dict((v, k) for k, v in _id2label.items())
