@@ -108,3 +108,18 @@ def check_word_order(pred_text: str, label: str) -> bool:
                 return False
             ptr = pred_text_words.index(label_words[i])
     return True
+
+
+def filter_accidental_speech(sent: str) -> bool:
+    """
+    Функция для фильтрации случайной речи
+
+    Аргументы:
+    sent (str): распознанное предложение
+
+    Возвращает:
+    bool: True, если предложение является случайной речью, иначе False
+    """
+    if ('[unk]' in sent) or (sent.strip() == ''):
+        return True
+    return False
